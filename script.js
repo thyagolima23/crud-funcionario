@@ -46,6 +46,16 @@ document.querySelector(".add_names").addEventListener("submit", function (event)
     adicionarFuncionario(funcionario);
 });
 
+document.addEventListener ("click", function(e){
+    if(e.target.classList.contains("excluir")){
+        const id = Number(e.target.dataset.id);
+        deletarFuncionario(id)
+    }
+    if(e.target.classList.contains("alterar")){
+        const id = Number(e.target.dataset.id);
+        preencherFormulario(id)
+    }
+})
 
 // Função para listar funcionários com feedback visual
 function listarFuncionarios() {
@@ -68,7 +78,11 @@ function listarFuncionarios() {
         if (cursor) { //se o registro existir
             let funcionario = cursor.value; //o cursor busca as informações(valores) dos funcionários
             listaFuncionarios.innerHTML += `<p>ID: ${funcionario.id} - Nome: ${funcionario.nome} - CPF: ${funcionario.cpf}
-            - E-mail: ${funcionario.email} - Telefone: ${funcionario.telefone} - Cargo: ${funcionario.cargo} - Data de nascimento: ${funcionario.data_nascimento} </p>`;
+            - E-mail: ${funcionario.email} - Telefone: ${funcionario.telefone} - Cargo: ${funcionario.cargo} - Data de nascimento: ${funcionario.data_nascimento} </p>
+            <button class="alterar" data-id="${funcionario.id}">Alterar</button>
+            <button class="excluir" data-id="${funcionario.id}">Excluir</button>
+            `;
+            
             cursor.continue();
         } else {
             mostrarFeedback("Lista de funcionários carregada com sucesso!", "success");
