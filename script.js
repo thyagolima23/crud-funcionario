@@ -45,6 +45,8 @@ document.querySelector(".add_names").addEventListener("submit", function (event)
 
     adicionarFuncionario(funcionario);
 });
+
+
 // Função para listar funcionários com feedback visual
 function listarFuncionarios() {
     let db = verificarDB();
@@ -79,7 +81,6 @@ function listarFuncionarios() {
     };
 }
 
-
 // Função para adicionar um funcionário com feedback visual
 function adicionarFuncionario(funcionario) {
     let db = verificarDB(); //verificar o banco para ver se ele existe
@@ -103,33 +104,33 @@ function adicionarFuncionario(funcionario) {
 
 
 // Função para atualizar um funcionário com feedback visual
-function atualizarFuncionario(id, novosDados) {
+function atualizarFuncionario(id, novosDados) { //o id é pra informar o n° do registro do funcionário e o novosDados para alterar a informação desejada
     let db = verificarDB();
     if (!db) return;
 
     let transaction = db.transaction("funcionarios", "readwrite");
     let store = transaction.objectStore("funcionarios");
 
-    let getRequest = store.get(id);
-    getRequest.onsuccess = function () {
+    let getRequest = store.get(id); //pega o número(id) do funcionário do banco de Dados
+    getRequest.onsuccess = function () { //obteve sucesso ao achar a ID do funcionário
         let funcionario = getRequest.result;
         if (funcionario) {
             Object.assign(funcionario, novosDados); // Atualiza os dados do funcionário
-            let updateRequest = store.put(funcionario);
+            let updateRequest = store.put(funcionario); //alterar os dados do funcionário
             updateRequest.onsuccess = function () {
                 console.log("Funcionário atualizado com sucesso!");
                 mostrarFeedback("Dados atualizados com sucesso!", "success"); // Mostra feedback visual
                 listarFuncionarios();
             };
 
-            updateRequest.onerror = function (event) {
+            updateRequest.onerror = function (event) { //alteração não realizada
                 console.error("Erro ao atualizar funcionário:", event.target.error);
                 mostrarFeedback("Erro ao atualizar funcionário!", "error"); // Exibe erro na interface
             };
         }
     };
 
-    getRequest.onerror = function (event) {
+    getRequest.onerror = function (event) { //alteração não realizada
         console.error("Erro ao obter funcionário para atualização:", event.target.error);
         mostrarFeedback("Erro ao carregar funcionário para atualização!", "error"); // Feedback visual
     };
@@ -137,7 +138,7 @@ function atualizarFuncionario(id, novosDados) {
 
 
 // Função para deletar um funcionário com feedback visual
-function deletarFuncionario(id) {
+function deletarFuncionario(id) { 
     let db = verificarDB();
     if (!db) return;
 
@@ -159,14 +160,14 @@ function deletarFuncionario(id) {
 
 
 
-// Mostrar feedback
+// Mostrar feedback para o cliente de suas ações ao usar o sistema
 function mostrarFeedback(mensagem, tipo) {
     let feedback = document.getElementById("feedback-msg");
     feedback.textContent = mensagem;
     feedback.className = `feedback ${tipo}`; // Aplica classe de sucesso ou erro
     feedback.style.display = "block";
 
-    setTimeout(() => {
+    setTimeout(() => { //função de tempo
         feedback.style.display = "none"; // Oculta após 3 segundos
     }, 3000);
 }
