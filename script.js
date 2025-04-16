@@ -1,16 +1,17 @@
 // Inicializa o banco de dados
-const request = indexedDB.open("FuncionariosDB", 1); //abertura da vesão 1 do banco de dados do indexedDB //banco de dados funcionáriosDB
+const request = indexedDB.open("FuncionariosDB", 1); // Abertura da versão 1 do banco de dados IndexedDB
 
-request.onupgradeneeded = function (event) { //onupgradeneeded: evento de atualização, serve para atualizar versões
-    let db = event.target.result; //retorna o banco de dado que está sendo criado ou atualizado
-    let store = db.createObjectStore("funcionarios", { keyPath: "id", autoIncrement: true }); //cria um espaço onde os dados são armazenados
-//store.crateIndex() cria um indice no objeto store, indices são usados para pesquisas e registros
+request.onupgradeneeded = function (event) { // Evento de atualização, serve para atualizar versões
+    let db = event.target.result; // Retorna o banco de dados que está sendo criado ou atualizado
+    let store = db.createObjectStore("funcionarios", { keyPath: "id", autoIncrement: true }); // Cria o espaço onde os dados são armazenados
+
+    // Criação de índices
     store.createIndex("nome", "nome", { unique: false });
     store.createIndex("cpf", "cpf", { unique: true });
     store.createIndex("email", "email", { unique: true });
-    store.createIndex("telefone", "telefone", {unique: true});
-    store.createIndex("cargo", "cargo", {unique: false});
-    store.createIndex("data_nascimento", "data_nascimento", {unique: false});
+    store.createIndex("telefone", "telefone", { unique: true });
+    store.createIndex("cargo", "cargo", { unique: false });
+    store.createIndex("data_nascimento", "data_nascimento", { unique: false });
 };
 
 request.onsuccess = function (event) {
@@ -34,28 +35,28 @@ function verificarDB() {
 // Captura o evento de envio do formulário
 document.querySelector(".add_names").addEventListener("submit", function (event) {
     event.preventDefault();
-    let funcionario = { //criar objeto funcionário, as palavras seguidas de dois pontos são atributos
-        nome: document.getquerySelector("#nome").value,
-        cpf: document.getquerySelector("#cpf").value,
-        email: document.getquerySelector("#email").value,
-        telefone: document.getquerySelector("#telefone").value,
-        data_nascimento: document.getquerySelector("#data_nascimento").value,
-        cargo: document.getquerySelector("#cargo").value
+    let funcionario = { // Criar objeto funcionário, as palavras seguidas de dois pontos são atributos
+        nome: document.querySelector("#nome").value,
+        cpf: document.querySelector("#cpf").value,
+        email: document.querySelector("#email").value,
+        telefone: document.querySelector("#telefone").value,
+        data_nascimento: document.querySelector("#data_nascimento").value,
+        cargo: document.querySelector("#cargo").value
     };
 
     adicionarFuncionario(funcionario);
 });
 
-document.addEventListener ("click", function(e){
-    if(e.target.classList.contains("excluir")){
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("excluir")) {
         const id = Number(e.target.dataset.id);
-        deletarFuncionario(id)
+        deletarFuncionario(id);
     }
-    if(e.target.classList.contains("alterar")){
+    if (e.target.classList.contains("alterar")) {
         const id = Number(e.target.dataset.id);
-        preencherFormulario(id)
+        preencherFormulario(id);
     }
-})
+});
 
 // Função para listar funcionários com feedback visual
 function listarFuncionarios() {
@@ -65,20 +66,20 @@ function listarFuncionarios() {
         return;
     }
 
-    let transaction = db.transaction("funcionarios", "readonly"); //faz leitura do Banco de funcionários
+    let transaction = db.transaction("funcionarios", "readonly"); // Faz leitura do banco de funcionários
     let store = transaction.objectStore("funcionarios");
 
-    let listaFuncionarios = document.querySelector(".your_dates"); //exibir lista no HTML
+    let listaFuncionarios = document.querySelector(".your_dates"); // Exibir lista no HTML
     listaFuncionarios.innerHTML = ""; // Limpa antes de exibir
     
-    let cursorRequest = store.openCursor(); //É o jeito que o indexedDB usa para percorrer todos os registros dentro da Store "funcionarios"
+    let cursorRequest = store.openCursor(); // É o jeito que o IndexedDB usa para percorrer todos os registros dentro da Store "funcionarios"
     
-    cursorRequest.onsuccess = function (event) { //lista executada com sucesso
-        let cursor = event.target.result; //o cursor aponta para cada registro
-        if (cursor) { //se o registro existir
-            let funcionario = cursor.value; //o cursor busca as informações(valores) dos funcionários
+    cursorRequest.onsuccess = function (event) { // Lista executada com sucesso
+        let cursor = event.target.result; // O cursor aponta para cada registro
+        if (cursor) { // Se o registro existir
+            let funcionario = cursor.value; // O cursor busca as informações(valores) dos funcionários
             listaFuncionarios.innerHTML += `<p>ID: ${funcionario.id} - Nome: ${funcionario.nome} - CPF: ${funcionario.cpf}
-            - E-mail: ${funcionario.email} - Telefone: ${funcionario.telefone} - Cargo: ${funcionario.cargo} - Data de nascimento: ${funcionario.data_nascimento} </p>
+            - E-mail: ${funcionario.email} - Telefone: ${funcionario.telefone} - Cargo: ${funcionario.cargo} - Data de nascimento: ${funcionario.data_nascimento}</p>
             <button class="alterar" data-id="${funcionario.id}">Alterar</button>
             <button class="excluir" data-id="${funcionario.id}">Excluir</button>
             `;
@@ -89,7 +90,7 @@ function listarFuncionarios() {
         }
     };
 
-    cursorRequest.onerror = function (event) { //erro ao listar funcionários
+    cursorRequest.onerror = function (event) { // Erro ao listar funcionários
         console.error("Erro ao listar funcionários:", event.target.error);
         mostrarFeedback("Erro ao listar funcionários!", "error");
     };
@@ -97,59 +98,57 @@ function listarFuncionarios() {
 
 // Função para adicionar um funcionário com feedback visual
 function adicionarFuncionario(funcionario) {
-    let db = verificarDB(); //verificar o banco para ver se ele existe
-    if (!db) return; //se estiver vazio sai da função
+    let db = verificarDB(); // Verificar o banco para ver se ele existe
+    if (!db) return; // Se estiver vazio sai da função
 
-    let transaction = db.transaction("funcionarios", "readwrite"); //o readwrite permite gerir(crud) os dados
-    let store = transaction.objectStore("funcionarios"); //referência direta de onde os dados serão armazenados
+    let transaction = db.transaction("funcionarios", "readwrite"); // O readwrite permite gerir (CRUD) os dados
+    let store = transaction.objectStore("funcionarios"); // Referência direta de onde os dados serão armazenados
     
-    let addRequest = store.add(funcionario); //adicionando funcionário na store
-    addRequest.onsuccess = function () { //funcionário adicionado com sucesso
+    let addRequest = store.add(funcionario); // Adicionando funcionário na store
+    addRequest.onsuccess = function () { // Funcionário adicionado com sucesso
         console.log("Funcionário adicionado com sucesso!");
         mostrarFeedback("Funcionário cadastrado com sucesso!", "success"); // Mostra feedback visual
-        listarFuncionarios(); //chama a função listar funcionário
+        listarFuncionarios(); // Chama a função listar funcionário
     };
 
-    addRequest.onerror = function (event) { //erro ao adicionar funcionário
+    addRequest.onerror = function (event) { // Erro ao adicionar funcionário
         console.error("Erro ao adicionar funcionário:", event.target.error);
         mostrarFeedback("Erro ao cadastrar funcionário!", "error"); // Exibe erro na interface
     };
 }
 
-
 // Função para atualizar um funcionário com feedback visual
-function atualizarFuncionario(id, novosDados) { //o id é pra informar o n° do registro do funcionário e o novosDados para alterar a informação desejada
+function atualizarFuncionario(id, novosDados) { // O id é para informar o n° do registro do funcionário e o novosDados para alterar a informação desejada
     let db = verificarDB();
     if (!db) return;
 
     let transaction = db.transaction("funcionarios", "readwrite");
     let store = transaction.objectStore("funcionarios");
 
-    let getRequest = store.get(id); //pega o número(id) do funcionário do banco de Dados
-    getRequest.onsuccess = function () { //obteve sucesso ao achar a ID do funcionário
+    let getRequest = store.get(id); // Pega o número (id) do funcionário do banco de dados
+    getRequest.onsuccess = function () { // Obteve sucesso ao achar a ID do funcionário
         let funcionario = getRequest.result;
         if (funcionario) {
             Object.assign(funcionario, novosDados); // Atualiza os dados do funcionário
-            let updateRequest = store.put(funcionario); //alterar os dados do funcionário
+            let updateRequest = store.put(funcionario); // Alterar os dados do funcionário
             updateRequest.onsuccess = function () {
                 console.log("Funcionário atualizado com sucesso!");
                 mostrarFeedback("Dados atualizados com sucesso!", "success"); // Mostra feedback visual
                 listarFuncionarios();
             };
 
-            updateRequest.onerror = function (event) { //alteração não realizada
+            updateRequest.onerror = function (event) { // Alteração não realizada
                 console.error("Erro ao atualizar funcionário:", event.target.error);
                 mostrarFeedback("Erro ao atualizar funcionário!", "error"); // Exibe erro na interface
             };
         }
     };
 
-    getRequest.onerror = function (event) { //alteração não realizada
+    getRequest.onerror = function (event) { // Alteração não realizada
         console.error("Erro ao obter funcionário para atualização:", event.target.error);
         mostrarFeedback("Erro ao carregar funcionário para atualização!", "error"); // Feedback visual
     };
 }
-
 
 // Função para deletar um funcionário com feedback visual
 function deletarFuncionario(id) { 
@@ -172,8 +171,6 @@ function deletarFuncionario(id) {
     };
 }
 
-
-
 // Mostrar feedback para o cliente de suas ações ao usar o sistema
 function mostrarFeedback(mensagem, tipo) {
     let feedback = document.getElementById("feedback-msg");
@@ -181,12 +178,10 @@ function mostrarFeedback(mensagem, tipo) {
     feedback.className = `feedback ${tipo}`; // Aplica classe de sucesso ou erro
     feedback.style.display = "block";
 
-    setTimeout(() => { //função de tempo
+    setTimeout(() => { // Função de tempo
         feedback.style.display = "none"; // Oculta após 3 segundos
     }, 3000);
 }
-
-
 
 // Chamada inicial para listar funcionários ao carregar a página
 window.onload = listarFuncionarios;
